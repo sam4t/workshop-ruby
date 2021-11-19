@@ -29,14 +29,6 @@ class AccountController < ApplicationController
   before_action :require_active_twofa, :twofa_setup, only: [:twofa_resend, :twofa_confirm, :twofa]
   before_action :prevent_twofa_session_replay, only: [:twofa_resend, :twofa]
 
-  # Overrides ApplicationController#verify_authenticity_token to disable
-  # token verification on openid callbacks
-  def verify_authenticity_token
-    unless using_open_id?
-      super
-    end
-  end
-
   # Login request and validation
   def login
     if request.post?
@@ -486,5 +478,15 @@ class AccountController < ApplicationController
   def account_locked(user, redirect_path=signin_path)
     flash[:error] = l(:notice_account_locked)
     redirect_to redirect_path
+  end
+
+  protected
+
+  # Overrides ApplicationController#verify_authenticity_token to disable
+  # token verification on openid callbacks
+  def verify_authenticity_token
+    unless using_open_id?
+      super
+    end
   end
 end

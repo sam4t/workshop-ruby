@@ -1,7 +1,11 @@
-= Redmine
+Create your own branch.
+Do smaller commits to fix this messy controllers:
 
-Redmine is a flexible project management web application written using Ruby on Rails framework.
+1) app/controllers/account_controller.rb
+2) app/controllers/activities_controller.rb
 
-More details can be found in the doc directory or on the official website http://www.redmine.org
+Create a pull request following what we learnt before.
+
+Lets see the results!
 
 test

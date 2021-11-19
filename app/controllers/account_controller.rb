@@ -33,10 +33,8 @@ class AccountController < ApplicationController
   def login
     if request.post?
       authenticate_user
-    else
-      if User.current.logged?
-        redirect_back_or_default home_url, :referer => true
-      end
+    elsif User.current.logged?
+      redirect_back_or_default home_url, referer: true
     end
   rescue AuthSourceException => e
     logger.error "An error occurred when authenticating #{params[:username]}: #{e.message}"
@@ -99,34 +97,32 @@ class AccountController < ApplicationController
       end
       render :template => "account/password_recovery"
       return
-    else
-      if request.post?
-        email = params[:mail].to_s.strip
-        user = User.find_by_mail(email)
-        # user not found
-        unless user
-          flash.now[:error] = l(:notice_account_unknown_email)
-          return
-        end
-        unless user.active?
-          handle_inactive_user(user, lost_password_path)
-          return
-        end
-        # user cannot change its password
-        unless user.change_password_allowed?
-          flash.now[:error] = l(:notice_can_t_change_password)
-          return
-        end
-        # create a new token for password recovery
-        token = Token.new(:user => user, :action => "recovery")
-        if token.save
-          # Don't use the param to send the email
-          recipent = user.mails.detect {|e| email.casecmp(e) == 0} || user.mail
-          Mailer.deliver_lost_password(user, token, recipent)
-          flash[:notice] = l(:notice_account_lost_email_sent)
-          redirect_to signin_path
-          return
-        end
+    elsif request.post?
+      email = params[:mail].to_s.strip
+      user = User.find_by_mail(email)
+      # user not found
+      unless user
+        flash.now[:error] = l(:notice_account_unknown_email)
+        return
+      end
+      unless user.active?
+        handle_inactive_user(user, lost_password_path)
+        return
+      end
+      # user cannot change its password
+      unless user.change_password_allowed?
+        flash.now[:error] = l(:notice_can_t_change_password)
+        return
+      end
+      # create a new token for password recovery
+      token = Token.new(:user => user, :action => "recovery")
+      if token.save
+        # Don't use the param to send the email
+        recipent = user.mails.detect {|e| email.casecmp(e) == 0} || user.mail
+        Mailer.deliver_lost_password(user, token, recipent)
+        flash[:notice] = l(:notice_account_lost_email_sent)
+        redirect_to signin_path
+        return
       end
     end
   end
@@ -306,22 +302,19 @@ class AccountController < ApplicationController
       invalid_credentials
     elsif user.new_record?
       onthefly_creation_failed(user, {:login => user.login, :auth_source_id => user.auth_source_id})
-    else
-      # Valid user
-      if user.active?
-        if user.twofa_active?
-          setup_twofa_session user
-          twofa = Redmine::Twofa.for_user(user)
-          if twofa.send_code(controller: 'account', action: 'twofa')
-            flash[:notice] = l('twofa_code_sent')
-          end
-          redirect_to account_twofa_confirm_path
-        else
-          handle_active_user(user)
+    elsif user.active?
+      if user.twofa_active?
+        setup_twofa_session user
+        twofa = Redmine::Twofa.for_user(user)
+        if twofa.send_code(controller: 'account', action: 'twofa')
+          flash[:notice] = l('twofa_code_sent')
         end
+        redirect_to account_twofa_confirm_path
       else
-        handle_inactive_user(user)
+        handle_active_user(user)
       end
+    else
+      handle_inactive_user(user)
     end
   end
 

@@ -26,6 +26,8 @@ class AccountController < ApplicationController
   # prevents login action to be filtered by check_if_login_required application scope filter
   skip_before_action :check_if_login_required, :check_password_change
   skip_before_action :check_twofa_activation, :only => :logout
+  before_action :require_active_twofa, :twofa_setup, only: [:twofa_resend, :twofa_confirm, :twofa]
+  before_action :prevent_twofa_session_replay, only: [:twofa_resend, :twofa]
 
   # Overrides ApplicationController#verify_authenticity_token to disable
   # token verification on openid callbacks
@@ -204,9 +206,6 @@ class AccountController < ApplicationController
     end
     redirect_to(home_url)
   end
-
-  before_action :require_active_twofa, :twofa_setup, only: [:twofa_resend, :twofa_confirm, :twofa]
-  before_action :prevent_twofa_session_replay, only: [:twofa_resend, :twofa]
 
   def twofa_resend
     # otp resends count toward the maximum of 3 otp entry tries per password entry

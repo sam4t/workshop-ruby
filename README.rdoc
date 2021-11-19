@@ -1,8 +1,8 @@
 Create your own branch.
 Do smaller commits to fix this messy controllers:
 
-app/controllers/account_controller.rb
-app/controllers/activities_controller.rb
+# app/controllers/account_controller.rb
+# app/controllers/activities_controller.rb
 
 Create a pull request following what we learnt before.
 
